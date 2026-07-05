@@ -46,6 +46,7 @@
 #ifndef _WIN32
 #include <signal.h>
 
+#ifndef __MSDOS__
 static void sighandler(int signum) {
     if (signum == SIGINT) {
         #if MICROPY_ASYNC_KBD_INTR
@@ -71,11 +72,12 @@ static void sighandler(int signum) {
     }
 }
 #endif
+#endif
 
 void mp_hal_set_interrupt_char(char c) {
     // configure terminal settings to (not) let ctrl-C through
     if (c == CHAR_CTRL_C) {
-        #ifndef _WIN32
+        #if !defined(_WIN32) && !defined(__MSDOS__)
         // enable signal handler
         struct sigaction sa;
         sa.sa_flags = 0;
@@ -84,7 +86,7 @@ void mp_hal_set_interrupt_char(char c) {
         sigaction(SIGINT, &sa, NULL);
         #endif
     } else {
-        #ifndef _WIN32
+        #if !defined(_WIN32) && !defined(__MSDOS__)
         // disable signal handler
         struct sigaction sa;
         sa.sa_flags = 0;
@@ -96,6 +98,14 @@ void mp_hal_set_interrupt_char(char c) {
 }
 
 #if MICROPY_USE_READLINE == 1
+
+#ifdef __MSDOS__
+// ia16-elf newlib has no termios; the DOS console needs no mode switch
+void mp_hal_stdio_mode_raw(void) {
+}
+void mp_hal_stdio_mode_orig(void) {
+}
+#else
 
 #include <termios.h>
 
@@ -118,6 +128,8 @@ void mp_hal_stdio_mode_orig(void) {
     // restore terminal settings
     tcsetattr(0, TCSANOW, &orig_termios);
 }
+
+#endif // __MSDOS__
 
 #endif
 

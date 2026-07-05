@@ -64,7 +64,7 @@ static uint emit_opt = MP_EMIT_OPT_NONE;
 #if MICROPY_ENABLE_GC
 // Heap size of GC heap (if enabled)
 // Make it larger on a 64 bit machine, because pointers are larger.
-long heap_size = 1024 * 1024 * (sizeof(mp_uint_t) / 4);
+uint32_t heap_size = 1024UL * 1024UL * (sizeof(mp_uint_t) / 4);
 #endif
 
 // Number of heaps to assign by default if MICROPY_GC_SPLIT_HEAP=1
@@ -323,6 +323,23 @@ static int invalid_args(void) {
 }
 
 // Process options which set interpreter init options
+#ifdef __MSDOS__
+// no VFS on the DOS build: resolve imports straight through newlib stat()
+#include <sys/stat.h>
+mp_import_stat_t mp_import_stat(const char *path) {
+    struct stat st;
+    if (stat(path, &st) == 0) {
+        if (S_ISDIR(st.st_mode)) {
+            return MP_IMPORT_STAT_DIR;
+        }
+        if (S_ISREG(st.st_mode)) {
+            return MP_IMPORT_STAT_FILE;
+        }
+    }
+    return MP_IMPORT_STAT_NO_EXIST;
+}
+#endif
+
 static void pre_process_options(int argc, char **argv) {
     for (int a = 1; a < argc; a++) {
         if (argv[a][0] == '-') {
@@ -370,7 +387,7 @@ static void pre_process_options(int argc, char **argv) {
                     if ((*end | 0x20) == 'k') {
                         heap_size *= 1024;
                     } else if ((*end | 0x20) == 'm') {
-                        heap_size *= 1024 * 1024;
+                        heap_size *= 1024UL * 1024UL;
                     } else {
                         // Compensate for ++ below
                         --end;

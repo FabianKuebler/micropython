@@ -633,10 +633,10 @@ static void close_over_variables_etc(compiler_t *comp, scope_t *this_scope, int 
     // ensure they are closed over in the order defined in the outer scope (mainly to agree with CPython)
     int nfree = 0;
     if (comp->scope_cur->kind != SCOPE_MODULE) {
-        for (int i = 0; i < comp->scope_cur->id_info_len; i++) {
+        for (unsigned int i = 0; i < comp->scope_cur->id_info_len; i++) {
             id_info_t *id = &comp->scope_cur->id_info[i];
             if (id->kind == ID_INFO_KIND_CELL || id->kind == ID_INFO_KIND_FREE) {
-                for (int j = 0; j < this_scope->id_info_len; j++) {
+                for (unsigned int j = 0; j < this_scope->id_info_len; j++) {
                     id_info_t *id2 = &this_scope->id_info[j];
                     if (id2->kind == ID_INFO_KIND_FREE && id->qst == id2->qst) {
                         // in MicroPython we load closures using LOAD_FAST
@@ -3408,7 +3408,7 @@ static void scope_compute_things(scope_t *scope) {
     // in functions, turn implicit globals into explicit globals
     // compute the index of each local
     scope->num_locals = 0;
-    for (int i = 0; i < scope->id_info_len; i++) {
+    for (unsigned int i = 0; i < scope->id_info_len; i++) {
         id_info_t *id = &scope->id_info[i];
         if (scope->kind == SCOPE_CLASS && id->qst == MP_QSTR___class__) {
             // __class__ is not counted as a local; if it's used then it becomes a ID_INFO_KIND_CELL
@@ -3435,7 +3435,7 @@ static void scope_compute_things(scope_t *scope) {
     }
 
     // compute the index of cell vars
-    for (int i = 0; i < scope->id_info_len; i++) {
+    for (unsigned int i = 0; i < scope->id_info_len; i++) {
         id_info_t *id = &scope->id_info[i];
         // in MicroPython the cells come right after the fast locals
         // parameters are not counted here, since they remain at the start
@@ -3450,10 +3450,10 @@ static void scope_compute_things(scope_t *scope) {
     // make sure they are in the order of the parent scope
     if (scope->parent != NULL) {
         int num_free = 0;
-        for (int i = 0; i < scope->parent->id_info_len; i++) {
+        for (unsigned int i = 0; i < scope->parent->id_info_len; i++) {
             id_info_t *id = &scope->parent->id_info[i];
             if (id->kind == ID_INFO_KIND_CELL || id->kind == ID_INFO_KIND_FREE) {
-                for (int j = 0; j < scope->id_info_len; j++) {
+                for (unsigned int j = 0; j < scope->id_info_len; j++) {
                     id_info_t *id2 = &scope->id_info[j];
                     if (id2->kind == ID_INFO_KIND_FREE && id->qst == id2->qst) {
                         assert(!(id2->flags & ID_FLAG_IS_PARAM)); // free vars should not be params
@@ -3466,7 +3466,7 @@ static void scope_compute_things(scope_t *scope) {
         }
         // in MicroPython shift all other locals after the free locals
         if (num_free > 0) {
-            for (int i = 0; i < scope->id_info_len; i++) {
+            for (unsigned int i = 0; i < scope->id_info_len; i++) {
                 id_info_t *id = &scope->id_info[i];
                 if (id->kind != ID_INFO_KIND_FREE || (id->flags & ID_FLAG_IS_PARAM)) {
                     id->local_num += num_free;

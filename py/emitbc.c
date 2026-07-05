@@ -333,9 +333,9 @@ void mp_emit_bc_start_pass(emit_t *emit, pass_kind_t pass, scope_t *scope) {
         // Note: there is some wasted RAM here for the case of storing a qstr
         // for each closed-over variable, and maybe there is a better way to do
         // it, but that would require changes to mp_setup_code_state.
-        for (int i = 0; i < scope->num_pos_args + scope->num_kwonly_args; i++) {
+        for (unsigned int i = 0; i < scope->num_pos_args + scope->num_kwonly_args; i++) {
             qstr qst = MP_QSTR__star_;
-            for (int j = 0; j < scope->id_info_len; ++j) {
+            for (unsigned int j = 0; j < scope->id_info_len; ++j) {
                 id_info_t *id = &scope->id_info[j];
                 if ((id->flags & ID_FLAG_IS_PARAM) && id->local_num == i) {
                     qst = id->qst;
@@ -419,7 +419,7 @@ void mp_emit_bc_adjust_stack_size(emit_t *emit, mp_int_t delta) {
     }
     assert((mp_int_t)emit->stack_size + delta >= 0);
     emit->stack_size += delta;
-    if (emit->stack_size > emit->scope->stack_size) {
+    if ((unsigned int)emit->stack_size > emit->scope->stack_size) {
         emit->scope->stack_size = emit->stack_size;
     }
 }

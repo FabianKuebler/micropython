@@ -113,11 +113,20 @@ typedef long mp_off_t;
 
 // Enable the VFS, and enable the posix "filesystem".
 #define MICROPY_ENABLE_FINALISER    (1)
+#ifdef __MSDOS__
+#define MICROPY_VFS                 (0)
+#define MICROPY_READER_VFS          (0)
+#else
 #define MICROPY_VFS                 (1)
 #define MICROPY_READER_VFS          (1)
+#endif
 #define MICROPY_HELPER_LEXER_UNIX   (1)
-#define MICROPY_VFS_POSIX           (1)
+#define MICROPY_VFS_POSIX           (0)
+#ifdef __MSDOS__
 #define MICROPY_READER_POSIX        (1)
+#else
+#define MICROPY_READER_POSIX        (0)
+#endif
 #if MICROPY_PY_FFI || MICROPY_BLUETOOTH_BTSTACK
 #define MICROPY_TRACKED_ALLOC       (1)
 #endif
@@ -153,7 +162,11 @@ typedef long mp_off_t;
 #define MICROPY_FATFS_MAX_SS           (4096)
 #define MICROPY_FATFS_LFN_CODE_PAGE    437 /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
 
+#ifdef PATH_MAX
 #define MICROPY_ALLOC_PATH_MAX      (PATH_MAX)
+#else
+#define MICROPY_ALLOC_PATH_MAX      (260)
+#endif
 
 // Ensure builtinimport.c works with -m.
 #define MICROPY_MODULE_OVERRIDE_MAIN_IMPORT (1)
